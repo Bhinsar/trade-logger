@@ -10,33 +10,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import { navSections } from "@/src/data/navItems";
-import Tooltip from "@/src/components/tooltip";
+import Tooltip from "@/src/components/common/tooltip";
 import { getUserInfo, signOutUser, UserInfo } from "@/src/actions/user";
-import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function SideBar() {
   const [collapsed, setCollapsed] = useState(false);
-  const [activeId, setActiveId] = useState("dashboard");
   const [signingOut, setSigningOut] = useState(false);
   const [user, setUser] = useState<UserInfo | null>(null);
-
-  useEffect(() => {
-    getUserInfo().then((data) => {
-      setUser(data);
-    });
-  }, []);
-
-  const displayName =
-    user?.firstName && user?.lastName
-      ? `${user.firstName} ${user.lastName}`
-      : (user?.name ?? "Trader");
-
-  const initials = displayName
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -47,13 +29,13 @@ export default function SideBar() {
     <aside
       className={cn(
         "relative flex flex-col h-screen",
-        "bg-[#13141f] border-r border-[#1e2030]",
+        "bg-background-secondary border-r border-background-border",
         "transition-all duration-300 ease-in-out",
         collapsed ? "w-[60px]" : "w-[240px]",
       )}
     >
       {/* ── Header ─────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-3 py-3 border-b border-[#1e2030]">
+      <div className="flex items-center justify-between px-3 py-3 border-b border-background-border">
         <div
           className={cn(
             "flex items-center gap-2.5 overflow-hidden transition-all duration-300",
@@ -64,7 +46,7 @@ export default function SideBar() {
           <div className="shrink-0 size-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
             <TrendingUp size={14} className="text-white" />
           </div>
-          <span className="text-sm font-semibold text-[#e2e4f0] whitespace-nowrap tracking-tight">
+          <span className="text-sm font-semibold whitespace-nowrap tracking-tight">
             Trade Logger
           </span>
         </div>
@@ -75,8 +57,8 @@ export default function SideBar() {
           onClick={() => setCollapsed((c) => !c)}
           className={cn(
             "shrink-0 flex items-center justify-center",
-            "size-7 rounded-lg text-[#6b7094]",
-            "hover:bg-[#1e2030] hover:text-[#c8ccd8]",
+            "size-7 rounded-lg",
+            "hover:bg-background-secondary hover:text-[#c8ccd8]",
             "transition-colors duration-150",
           )}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -92,14 +74,14 @@ export default function SideBar() {
       {/* ── Nav Sections ───────────────────────────────────────────── */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-1 space-y-0.5 scrollbar-thin">
         {navSections.map((item) => {
-          const isActive = activeId === item.id;
+          const isActive = usePathname() === item.href;
           return (
             <Tooltip key={item.id} label={item.label} show={collapsed}>
-              <button
+            <Link
                 id={`nav-${item.id}`}
-                onClick={() => setActiveId(item.id)}
+                href={item.href ?? "#"}
                 className={cn(
-                  "group flex items-center gap-2.5 w-full rounded-lg px-2 py-2",
+                  "group relative flex items-center gap-2.5 w-full rounded-lg px-2 py-2 cursor-pointer",
                   "text-sm font-medium transition-all duration-150",
                   isActive
                     ? "bg-[#0d2b20] text-emerald-400 shadow-sm"
@@ -147,7 +129,7 @@ export default function SideBar() {
                     )}
                   </>
                 )}
-              </button>
+              </Link>
             </Tooltip>
           );
         })}
@@ -158,42 +140,6 @@ export default function SideBar() {
 
       {/* ── User Profile + Sign Out ─────────────────────────────────── */}
       <div className="border-t border-[#1e2030] px-2 py-2">
-        {/* User info row */}
-        <div
-          className={cn(
-            "flex items-center gap-2.5 w-full rounded-lg px-2 py-2",
-            collapsed && "justify-center px-0",
-          )}
-        >
-          {/* Avatar — use Google picture when available */}
-          {user?.image ? (
-            <div className="shrink-0 size-7 rounded-full overflow-hidden ring-1 ring-emerald-500/30">
-              <Image
-                src={user.image}
-                alt={displayName}
-                width={28}
-                height={28}
-                className="object-cover w-full h-full"
-              />
-            </div>
-          ) : (
-            <div className="shrink-0 size-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center text-white text-[10px] font-bold shadow-md shadow-emerald-500/20">
-              {initials || "T"}
-            </div>
-          )}
-
-          {!collapsed && (
-            <div className="flex-1 min-w-0 text-left">
-              <p className="text-xs font-semibold text-[#c8ccd8] truncate">
-                {displayName}
-              </p>
-              <p className="text-[10px] text-[#4a4f6e] truncate">
-                {user?.email ?? "Pro Account"}
-              </p>
-            </div>
-          )}
-        </div>
-
         {/* Sign-out button */}
         <Tooltip label="Sign out" show={collapsed}>
           <button

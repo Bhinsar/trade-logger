@@ -1,8 +1,5 @@
-'use client'
+import Dashboard from "@/src/components/pages/dashboard/dashboard";
+
 export default function Home() {
-  return (
-    <div className="flex-1 flex items-center justify-center text-[#3d4166] text-sm">
-      Main content area
-    </div>
-  );
+  return <Dashboard />;
 }

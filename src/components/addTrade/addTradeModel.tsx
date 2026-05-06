@@ -1,0 +1,156 @@
+"use client";
+
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/src/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/components/ui/tabs"
+import { Separator } from "../ui/separator";
+import { Button } from "../ui/button";
+import PsychologyForm from "./components/psychologyForm";
+import GenralFrom from "./components/genralFrom";
+import { useState } from "react";
+import { useForm, FormProvider, Resolver } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { createTradeSchema, CreateTradeInput } from "./createTradeSchema";
+import { createTrade, TradeInterface } from "@/src/actions/trade";
+import { Brain, Info, Loader2 } from "lucide-react";
+import { AddStrategyModel } from "../addStrategy/addStrategyModel";
+
+const generalFields = [
+    "symbol", "entry_price", "exit_price", "quantity", 
+    "pnl_nominal", "pnl_percentage", "entry_time", "exit_time", 
+    "strategy_id", "side", "asset_class"
+];
+
+const psychologyFields = [
+    "notes", "trade_image_url", "entry_confidence", 
+    "satisfaction_rating", "mistakes_made", "lessons_learned"
+];
+
+export function AddTradeModel({ isVisible, setIsVisible }: { isVisible: boolean, setIsVisible: (value: boolean) => void }) {
+    const [activeTab, setActiveTab] = useState<string>("general");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isAddStrategyOpen, setIsAddStrategyOpen] = useState(false);
+    const [strategySearch, setStrategySearch] = useState("");
+
+    const methods = useForm<CreateTradeInput>({
+        resolver: yupResolver(createTradeSchema) as Resolver<CreateTradeInput>,
+        defaultValues: {
+            symbol: "",
+            entry_price: 0,
+            exit_price: 0,
+            quantity: 1,
+            pnl_nominal: 0,
+            pnl_percentage: 0,
+            strategy_id: "",
+            side: "Long",
+            asset_class: "Equity",
+            entry_confidence: 5,
+            satisfaction_rating: 5,
+            notes: "",
+            mistakes_made: [],
+            lessons_learned: [],
+            trade_image_url: []
+        }
+        });
+
+    const onSubmit = async (data: CreateTradeInput) => {
+        setIsSubmitting(true);
+        try {
+            const res = await createTrade(data as TradeInterface);
+            if (res) {
+                setIsVisible(false);
+                methods.reset();
+                setActiveTab("general");
+            } else {
+                console.error("Failed to create trade.");
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const onError = (errors: any) => {
+        const errorKeys = Object.keys(errors);
+        if (errorKeys.length > 0) {
+            const firstErrorKey = errorKeys[0];
+            if (generalFields.includes(firstErrorKey)) {
+                setActiveTab("general");
+            } else if (psychologyFields.includes(firstErrorKey)) {
+                setActiveTab("psychology");
+            }
+        }
+    };
+
+    return (
+        <>
+            <Dialog open={isVisible} onOpenChange={(open) => {
+                setIsVisible(open);
+                if (!open) {
+                    methods.reset();
+                    setActiveTab("general");
+                }
+            }}>
+                <DialogContent className="max-w-[90vw] h-[90vh] flex flex-col p-0 overflow-hidden sm:max-w-[70vw] lg:max-w-[60vw]">
+                    <div className="px-6 pt-2">
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl font-bold">New Trade Journal</DialogTitle>
+                        </DialogHeader>
+                    </div>
+                    <Separator/>
+                    
+                    <FormProvider {...methods}>
+                        <form onSubmit={methods.handleSubmit(onSubmit, onError)} className="flex flex-col flex-1 overflow-hidden">
+                            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 overflow-hidden w-full">
+                                <div>
+                                    <TabsList variant={"line"} className="w-full grid grid-cols-2">
+                                        <TabsTrigger value="general" className="text-base"><Info className="mr-2 h-4 w-4" /> General</TabsTrigger>
+                                        <TabsTrigger value="psychology" className="text-base"><Brain className="mr-2 h-4 w-4" /> Psychology</TabsTrigger>
+                                    </TabsList>
+                                </div>
+                                
+                                <Separator/>
+                                
+                                <div className="flex-1 overflow-y-auto px-6 py-4">
+                                    <TabsContent value="general" className="m-0 focus-visible:outline-none focus-visible:ring-0">
+                                        <GenralFrom 
+                                            setIsAddStrategyOpen={setIsAddStrategyOpen} 
+                                            setStrategySearch={setStrategySearch} 
+                                        />
+                                    </TabsContent>
+                                    <TabsContent value="psychology" className="m-0 focus-visible:outline-none focus-visible:ring-0">
+                                        <PsychologyForm />
+                                    </TabsContent>
+                                </div>
+
+                                <Separator />
+                                
+                                <div className="flex justify-end gap-3 p-4 bg-muted/20">
+                                    <Button type="button" variant="outline" onClick={() => setIsVisible(false)} disabled={isSubmitting}>Cancel</Button>
+                                    <Button type="submit" variant="default" disabled={isSubmitting}>
+                                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                        Save Trade
+                                    </Button>
+                                </div>
+                            </Tabs>
+                        </form>
+                    </FormProvider>
+                </DialogContent>
+            </Dialog>
+            <AddStrategyModel
+                isOpen={isAddStrategyOpen}
+                onClose={() => setIsAddStrategyOpen(false)}
+                initialTitle={strategySearch}
+                onSuccess={(newStrategy) => {
+                    methods.setValue("strategy_id", newStrategy._id || newStrategy.id);
+                    setIsAddStrategyOpen(false);
+                }}
+            />
+    
+        </>
+    );
+}

@@ -27,6 +27,7 @@ export const navSections: NavItem[] = [
     id: "dashboard",
     label: "Dashboard",
     icon: <LayoutDashboard size={18} />,
+    href: "/dashboard",
   },
   {
     id: "portfolio",

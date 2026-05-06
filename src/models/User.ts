@@ -31,6 +31,10 @@ const UserSchema = new Schema({
         type: Boolean,
         required: true,
         default: false
+    },
+    delete_at: {
+        type: Date,
+        required: false,
     }
 }, {
     strict: true,

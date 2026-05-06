@@ -4,7 +4,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+
 @theme inline {
+  --color-background-primary: #191a29;
+  --color-background-secondary: #13141f;
+  --color-background-border: ##656b9c;
+  /* --color-background-border: #1e2030; */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -48,7 +53,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
+:root {  
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -86,6 +91,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   /* Dark background: zinc-950 — from the login page */
   --background: oklch(0.13 0.01 240);
   --foreground: oklch(0.985 0 0);
@@ -126,6 +132,8 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted-foreground) transparent;
   }
   body {
     @apply bg-background text-foreground;
@@ -133,4 +141,41 @@
   html {
     @apply font-sans;
   }
+
+  /* Hide number input arrows */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+/* Modern Scrollbar - Global */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) transparent;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--muted-foreground);
+  border-radius: 20px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary);
 }
