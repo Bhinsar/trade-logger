@@ -20,7 +20,10 @@ export type UserInfo = {
 export async function getUserInfo(): Promise<UserInfo | null> {
   try {
     const session = await auth();
-    if (!session?.user?.email) return null;
+    if (!session?.user?.email) {
+      await signOutUser();
+      return null;
+    }
 
     await connectToDatabase();
     const dbUser = await User.findOne({ email: session.user.email }).lean<{
@@ -40,7 +43,7 @@ export async function getUserInfo(): Promise<UserInfo | null> {
       lastName: dbUser?.last_name ?? null,
     };
   } catch (err) {
-    console.error("❌ getUserInfo Error:", err);
+    console.error("getUserInfo Error:", err);
     return null;
   }
 }
