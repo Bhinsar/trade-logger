@@ -20,12 +20,20 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
   const quantity = watch("quantity");
   const side = watch("side");
 
+  const pnl_nominal = watch("pnl_nominal") || 0;
+
+  const pnlStyle = pnl_nominal > 0 
+    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/50 font-bold" 
+    : pnl_nominal < 0 
+      ? "bg-red-500/10 text-red-500 border-red-500/50 font-bold" 
+      : "bg-muted/50 text-muted-foreground";
+
   useEffect(() => {
     const entry = Number(entry_price);
     const exit = Number(exit_price);
     const qty = Number(quantity);
 
-    if (!isNaN(entry) && !isNaN(exit) && !isNaN(qty) && entry !== 0) {
+    if (entry > 0 && exit > 0 && qty > 0) {
       let pnl = 0;
       let pnlPercent = 0;
 
@@ -33,12 +41,15 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
         pnl = (exit - entry) * qty;
         pnlPercent = ((exit - entry) / entry) * 100;
       } else if (side === "Short") {
-        pnl = (entry - exit) * qty;
+        pnl = (entry - exit) * entry * qty / entry; // Standardizing short calc
         pnlPercent = ((entry - exit) / entry) * 100;
       }
 
+      // CLAMPING: This prevents the value from exceeding 100 or falling below -100
+      const clampedPercent = Math.min(Math.max(pnlPercent, -100), 100);
+
       setValue("pnl_nominal", Number(pnl.toFixed(2)));
-      setValue("pnl_percentage", Number(pnlPercent.toFixed(2)));
+      setValue("pnl_percentage", Number(clampedPercent.toFixed(2)));
     } else {
       setValue("pnl_nominal", 0);
       setValue("pnl_percentage", 0);
@@ -133,6 +144,7 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
         type="number"
         isReadOnly={true}
         required={true}
+        style={pnlStyle}
       />
       <FormInput
         name="pnl_percentage"
@@ -142,6 +154,7 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
         type="number"
         isReadOnly={true}
         required={true}
+        style={pnlStyle}
       />
 
       <FormInput

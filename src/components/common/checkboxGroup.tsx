@@ -70,7 +70,7 @@ function CheckboxGroup<T extends FieldValues>({
                           : "border-gray-300 bg-gray-50"
                       )}
                     >
-                      {isSelected && <Check className="size-3 text-white stroke-[4]" />}
+                      {isSelected && <Check className="size-3 text-white stroke-4" />}
                     </div>
                     <span className="text-sm font-medium">{option.label}</span>
                   </div>
