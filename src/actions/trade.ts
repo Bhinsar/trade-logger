@@ -4,6 +4,7 @@ import { auth } from "@/src/app/api/auth/[...nextauth]/route";
 import { connectToDatabase } from "../lib/mongodb";
 import { Trade } from "../models/Trade";
 import { signOutUser } from "./user";
+import { revalidatePath } from "next/cache";
 
 // Enums and Interfaces
 enum SideValue {
@@ -57,6 +58,8 @@ export async function createTrade(trade: TradeInterface): Promise<TradeInterface
       ...trade,
       user_id: session.user.id,
     });
+
+    revalidatePath("/dashboard");
 
     // 3. Convert Mongoose Document to Plain Object for Server Action serialization
     return JSON.parse(JSON.stringify(newTrade)); 
@@ -317,5 +320,157 @@ export async function getGraphTrades(filter: 'D' | 'W' | 'M' | 'All' = 'M'): Pro
   } catch (error) {
     console.error("Error fetching graph trades:", error);
     return [];
+  }
+}
+
+// ─── Insight Stats ────────────────────────────────────────────────────────────
+
+export interface SymbolStat {
+  symbol: string;
+  trades: number;
+  wins: number;
+  winRate: number;
+}
+
+export interface InsightStats {
+  currentStreak: number;      // positive = win streak, negative = loss streak
+  longestWinStreak: number;
+  longestLossStreak: number;
+  avgLoss: number;
+  biggestLoss: number;
+  avgHoldMinutes: number;     // average hold time in minutes
+  topSymbols: SymbolStat[];   // top 5 most traded symbols
+  profitFactor: number;       // gross profit / gross loss
+}
+
+export async function getInsightStats(): Promise<InsightStats | null> {
+  const session = await auth();
+  if (!session?.user?.id) return null;
+
+  try {
+    await connectToDatabase();
+    const trades: any[] = await Trade.find({
+      user_id: session.user.id,
+      is_deleted: { $ne: true },
+    })
+      .sort({ entry_time: -1 })
+      .lean();
+
+    if (trades.length === 0) {
+      return {
+        currentStreak: 0,
+        longestWinStreak: 0,
+        longestLossStreak: 0,
+        avgLoss: 0,
+        biggestLoss: 0,
+        avgHoldMinutes: 0,
+        topSymbols: [],
+        profitFactor: 0,
+      };
+    }
+
+    // --- Streak calculation (trades sorted newest-first) ---
+    let currentStreak = 0;
+    let longestWinStreak = 0;
+    let longestLossStreak = 0;
+    let tempWin = 0;
+    let tempLoss = 0;
+
+    // Current streak: iterate from latest trade
+    let streakBroken = false;
+    for (const t of trades) {
+      const pnl = parseFloat(t.pnl_nominal?.toString() || "0");
+      if (!streakBroken) {
+        if (pnl > 0) {
+          if (currentStreak >= 0) currentStreak++;
+          else streakBroken = true;
+        } else if (pnl < 0) {
+          if (currentStreak <= 0) currentStreak--;
+          else streakBroken = true;
+        } else {
+          streakBroken = true;
+        }
+      }
+    }
+
+    // Longest streaks: iterate oldest-first
+    for (let i = trades.length - 1; i >= 0; i--) {
+      const pnl = parseFloat(trades[i].pnl_nominal?.toString() || "0");
+      if (pnl > 0) {
+        tempWin++;
+        tempLoss = 0;
+        if (tempWin > longestWinStreak) longestWinStreak = tempWin;
+      } else if (pnl < 0) {
+        tempLoss++;
+        tempWin = 0;
+        if (tempLoss > longestLossStreak) longestLossStreak = tempLoss;
+      } else {
+        tempWin = 0;
+        tempLoss = 0;
+      }
+    }
+
+    // --- Loss / profit factor ---
+    let grossProfit = 0;
+    let grossLoss = 0;
+    let biggestLoss = 0;
+    let totalLossCount = 0;
+
+    for (const t of trades) {
+      const pnl = parseFloat(t.pnl_nominal?.toString() || "0");
+      if (pnl > 0) grossProfit += pnl;
+      if (pnl < 0) {
+        grossLoss += Math.abs(pnl);
+        totalLossCount++;
+        if (Math.abs(pnl) > biggestLoss) biggestLoss = Math.abs(pnl);
+      }
+    }
+    const avgLoss = totalLossCount > 0 ? grossLoss / totalLossCount : 0;
+    const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? 999 : 0;
+
+    // --- Avg hold time ---
+    let totalMinutes = 0;
+    let holdCount = 0;
+    for (const t of trades) {
+      if (t.entry_time && t.exit_time) {
+        const mins = (new Date(t.exit_time).getTime() - new Date(t.entry_time).getTime()) / 60000;
+        if (mins > 0) { totalMinutes += mins; holdCount++; }
+      }
+    }
+    const avgHoldMinutes = holdCount > 0 ? totalMinutes / holdCount : 0;
+
+    // --- Top symbols ---
+    const symbolMap = new Map<string, { trades: number; wins: number }>();
+    for (const t of trades) {
+      const sym = t.symbol as string;
+      const pnl = parseFloat(t.pnl_nominal?.toString() || "0");
+      const existing = symbolMap.get(sym) ?? { trades: 0, wins: 0 };
+      existing.trades++;
+      if (pnl > 0) existing.wins++;
+      symbolMap.set(sym, existing);
+    }
+    const topSymbols: SymbolStat[] = Array.from(symbolMap.entries())
+      .map(([symbol, s]) => ({
+        symbol,
+        trades: s.trades,
+        wins: s.wins,
+        winRate: Math.round((s.wins / s.trades) * 100),
+      }))
+      .sort((a, b) => b.trades - a.trades)
+      .slice(0, 5);
+
+    return {
+      currentStreak,
+      longestWinStreak,
+      longestLossStreak,
+      avgLoss,
+      biggestLoss,
+      avgHoldMinutes,
+      topSymbols,
+      profitFactor,
+    };
+  } catch (error) {
+    console.error("Error fetching insight stats:", error);
+    return null;
   }
 }

@@ -6,6 +6,7 @@ import { CreateTradeInput } from "../createTradeSchema";
 import FileUpload from "../../common/fileUpload";
 import SearchableSelect from "../../common/searchableSelect";
 import { getAllStrategies } from "@/src/actions/strategie";
+import { searchStocks } from "@/src/actions/stockActions";
 
 interface GenralFromProps {
   setIsAddStrategyOpen: (value: boolean) => void;
@@ -13,7 +14,7 @@ interface GenralFromProps {
 }
 
 function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps) {
-  const { control, watch, setValue } = useFormContext<CreateTradeInput>();
+  const { control, watch, setValue, getValues } = useFormContext<CreateTradeInput>();
 
   const entry_price = watch("entry_price");
   const exit_price = watch("exit_price");
@@ -28,6 +29,25 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
       ? "bg-red-500/10 text-red-500 border-red-500/50 font-bold" 
       : "bg-muted/50 text-muted-foreground";
 
+  // Auto-fill entry_time when entry_price is first entered
+  useEffect(() => {
+    const entry = Number(entry_price);
+    if (entry > 0 && !getValues("entry_time")) {
+      setValue("entry_time", new Date() as any);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry_price]);
+
+  // Auto-fill exit_time when exit_price is first entered
+  useEffect(() => {
+    const exit = Number(exit_price);
+    if (exit > 0 && !getValues("exit_time")) {
+      setValue("exit_time", new Date() as any);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exit_price]);
+
+  // PnL calculation
   useEffect(() => {
     const entry = Number(entry_price);
     const exit = Number(exit_price);
@@ -59,12 +79,17 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
   return (
     <div>      
     <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 pb-2">
-      <FormInput
+      {/* Symbol — searchable dropdown, only valid NSE stocks */}
+      <SearchableSelect
         name="symbol"
         control={control}
         label="Symbol"
-        placeholder="e.g. AAPL, BTC/USD"
+        placeholder="Search NSE symbol…"
         required={true}
+        onSearch={async (search) => {
+          if (!search || search.trim().length < 1) return [];
+          return searchStocks(search);
+        }}
       />
         <FormInput
           name="asset_class"

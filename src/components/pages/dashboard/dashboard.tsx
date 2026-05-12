@@ -6,18 +6,18 @@ import { useState } from "react";
 import StatsCards from "./components/statsCards";
 import ConfidenceIndex from "./components/confidenceIndex";
 import PerformanceAndTopTrades from "./components/performanceAndTopTrades";
+import InsightCards from "./components/insightCards";
 
 const Dashboard = () => {
   const [isVisible, setIsVisible] = useState(false);
   return (
     <div>
-      <div>
-        <Header title="Dashboard" />
-        <ActionButtons addTrade={setIsVisible} />
-      </div>
+      <Header title="Dashboard" />
+      <ActionButtons addTrade={setIsVisible} />
       <StatsCards />
       <ConfidenceIndex />
       <PerformanceAndTopTrades />
+      <InsightCards />
       <AddTradeModel isVisible={isVisible} setIsVisible={setIsVisible} />
     </div>
   );

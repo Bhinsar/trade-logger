@@ -145,7 +145,15 @@ function FormInput<T extends FieldValues>({
                       : type
                   }
                   step={type === "number" ? "any" : undefined}
-                  value={field.value ?? currentValue ?? ""}
+                  value={(() => {
+                    const raw: unknown = field.value ?? currentValue ?? "";
+                    if (raw instanceof Date) {
+                      return new Date(raw.getTime() - raw.getTimezoneOffset() * 60000)
+                        .toISOString()
+                        .slice(0, 16);
+                    }
+                    return raw as string | number | readonly string[];
+                  })()}
                   max={
                     type === "date"
                       ? maxValue || new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0]
