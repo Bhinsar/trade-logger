@@ -47,9 +47,9 @@ export async function fetchNiftyTop10() {
         // Nifty Top 10 symbol tokens on NSE
         const tokens = ["2885", "1333", "4963", "10604", "3045", "11536", "1594", "5900", "11483", "1660"];
 
-        // marketData with mode "LTP" fetches all tokens in a single batch call
+        // mode "FULL" returns ltp + open/high/low/close/netChange/percentChange
         const result = await smart_api.marketData({
-            mode: "LTP",
+            mode: "FULL",
             exchangeTokens: {
                 NSE: tokens,
             },
@@ -59,6 +59,7 @@ export async function fetchNiftyTop10() {
             symbol: item.tradingSymbol || item.tradingsymbol || "Unknown",
             ltp: item.ltp,
             token: item.symbolToken || item.symboltoken,
+            percentChange: item.percentChange ?? item.netChange ?? 0,
         }));
     } catch (error) {
         console.error("Fetch Error:", error);
