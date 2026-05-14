@@ -11,6 +11,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { getInsightStats, InsightStats } from "@/src/actions/trade";
+import { useDashboardRefresh } from "../dashboardRefreshContext";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const formatMinutes = (mins: number) => {
@@ -325,6 +326,7 @@ const LossRecoveryCard = ({ stats }: { stats: InsightStats }) => {
 const InsightCards = () => {
   const [stats, setStats] = useState<InsightStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const { refreshKey } = useDashboardRefresh();
 
   useEffect(() => {
     const fetch = async () => {
@@ -338,7 +340,7 @@ const InsightCards = () => {
       }
     };
     fetch();
-  }, []);
+  }, [refreshKey]);
 
   if (loading) return <Skeleton />;
   if (!stats) return null;

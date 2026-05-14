@@ -19,6 +19,8 @@ import { createTradeSchema, CreateTradeInput } from "./createTradeSchema";
 import { createTrade, TradeInterface } from "@/src/actions/trade";
 import { Brain, Info, Loader2 } from "lucide-react";
 import { AddStrategyModel } from "../addStrategy/addStrategyModel";
+import { toast } from "sonner";
+
 
 const generalFields = [
     "symbol", "entry_price", "exit_price", "quantity", 
@@ -31,7 +33,15 @@ const psychologyFields = [
     "satisfaction_rating", "mistakes_made", "lessons_learned"
 ];
 
-export function AddTradeModel({ isVisible, setIsVisible }: { isVisible: boolean, setIsVisible: (value: boolean) => void }) {
+export function AddTradeModel({
+    isVisible,
+    setIsVisible,
+    onTradeAdded,
+}: {
+    isVisible: boolean;
+    setIsVisible: (value: boolean) => void;
+    onTradeAdded?: () => void;
+}) {
     const [activeTab, setActiveTab] = useState<string>("general");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isAddStrategyOpen, setIsAddStrategyOpen] = useState(false);
@@ -66,9 +76,22 @@ export function AddTradeModel({ isVisible, setIsVisible }: { isVisible: boolean,
                 setIsVisible(false);
                 methods.reset();
                 setActiveTab("general");
+                // Tell the dashboard to re-fetch all data
+                onTradeAdded?.();
+                const pnl = res.pnl_nominal ?? 0;
+                const symbol = res.symbol ?? "Trade";
+                toast.success(`${symbol} logged successfully`, {
+                    description: `P&L: ${pnl >= 0 ? "+" : ""}₹${Number(pnl).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`,
+                });
             } else {
-                console.error("Failed to create trade.");
+                toast.error("Failed to save trade", {
+                    description: "Something went wrong. Please try again.",
+                });
             }
+        } catch (err) {
+            toast.error("Unexpected error", {
+                description: "Could not connect to the server.",
+            });
         } finally {
             setIsSubmitting(false);
         }

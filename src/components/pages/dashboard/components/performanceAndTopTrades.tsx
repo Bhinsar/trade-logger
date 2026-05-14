@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { LineChart as LineChartIcon } from 'lucide-react';
 import { getGraphTrades, getTrades, GraphTradeResponse, getTradeResponse } from '@/src/actions/trade';
+import { useDashboardRefresh } from '../dashboardRefreshContext';
 
 const PerformanceAndTopTrades = () => {
   const [graphTrades, setGraphTrades] = useState<GraphTradeResponse[]>([]);
@@ -10,6 +11,7 @@ const PerformanceAndTopTrades = () => {
   const [loadingGraph, setLoadingGraph] = useState(true);
   const [loadingTop, setLoadingTop] = useState(true);
   const [filter, setFilter] = useState<'M' | 'W' | 'D'>('M');
+  const { refreshKey } = useDashboardRefresh();
 
   useEffect(() => {
     const fetchTopTrades = async () => {
@@ -33,7 +35,7 @@ const PerformanceAndTopTrades = () => {
       }
     };
     fetchTopTrades();
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     const fetchGraphTrades = async () => {
@@ -48,7 +50,7 @@ const PerformanceAndTopTrades = () => {
       }
     };
     fetchGraphTrades();
-  }, [filter]);
+  }, [filter, refreshKey]);
 
   // Prepare chart data (Cumulative P&L)
   let cumulativePnl = 0;

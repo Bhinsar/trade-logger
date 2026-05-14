@@ -1,10 +1,12 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { getDashboardStats } from '@/src/actions/trade';
+import { useDashboardRefresh } from '../dashboardRefreshContext';
 
 const ConfidenceIndex = () => {
   const [confidence, setConfidence] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const { refreshKey } = useDashboardRefresh();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -20,7 +22,7 @@ const ConfidenceIndex = () => {
       }
     };
     fetchStats();
-  }, []);
+  }, [refreshKey]);
 
   if (loading) {
     return (

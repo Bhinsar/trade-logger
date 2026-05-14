@@ -7,9 +7,13 @@ import StatsCards from "./components/statsCards";
 import ConfidenceIndex from "./components/confidenceIndex";
 import PerformanceAndTopTrades from "./components/performanceAndTopTrades";
 import InsightCards from "./components/insightCards";
+import { DashboardRefreshProvider, useDashboardRefresh } from "./dashboardRefreshContext";
 
-const Dashboard = () => {
+// Inner component so it can consume the context
+function DashboardInner() {
   const [isVisible, setIsVisible] = useState(false);
+  const { triggerRefresh } = useDashboardRefresh();
+
   return (
     <div>
       <Header title="Dashboard" />
@@ -18,9 +22,19 @@ const Dashboard = () => {
       <ConfidenceIndex />
       <PerformanceAndTopTrades />
       <InsightCards />
-      <AddTradeModel isVisible={isVisible} setIsVisible={setIsVisible} />
+      <AddTradeModel
+        isVisible={isVisible}
+        setIsVisible={setIsVisible}
+        onTradeAdded={triggerRefresh}
+      />
     </div>
   );
-};
+}
+
+const Dashboard = () => (
+  <DashboardRefreshProvider>
+    <DashboardInner />
+  </DashboardRefreshProvider>
+);
 
 export default Dashboard;

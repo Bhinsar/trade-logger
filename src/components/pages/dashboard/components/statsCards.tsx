@@ -2,10 +2,12 @@
 import React, { useEffect, useState } from 'react';
 import { Wallet, Trophy, Scale, BarChart2 } from 'lucide-react';
 import { getDashboardStats, DashboardStats } from '@/src/actions/trade';
+import { useDashboardRefresh } from '../dashboardRefreshContext';
 
 const StatsCards = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const { refreshKey } = useDashboardRefresh();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -21,7 +23,7 @@ const StatsCards = () => {
       }
     };
     fetchStats();
-  }, []);
+  }, [refreshKey]);
 
   if (loading) {
     return (
