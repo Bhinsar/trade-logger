@@ -47,7 +47,7 @@ const TradeSchema = new Schema({
         type: String,
         required: false,
     },
-    trade_image_url: {
+    trade_doc_url: {
         type: [String],
         required: false,
     },

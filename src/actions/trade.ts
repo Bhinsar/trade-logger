@@ -32,7 +32,7 @@ export interface TradeInterface {
   exit_time: Date;
   strategy_id: string;
   notes?: string | null;
-  trade_image_url?: string[] | null;
+  trade_doc_url?: string[] | null;
   side: SideValue;
   asset_class: AssetClassValues;
   entry_confidence?: number | null;

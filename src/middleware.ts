@@ -1,5 +1,5 @@
 import NextAuth from "next-auth";
-import { authConfig } from "@/src/auth.config";
+import { authConfig } from "@/src/utils/auth.config";
 
 /**
  * Middleware runs on the Edge Runtime.
@@ -17,6 +17,6 @@ export const config = {
    *   can respond with JSON instead of being redirected to /login
    */
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/auth|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/auth|api/uploadthing|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

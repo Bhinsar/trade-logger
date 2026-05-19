@@ -17,7 +17,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <Toaster
-          position="bottom-right"
+          position="top-right"
           richColors
           theme="dark"
           closeButton

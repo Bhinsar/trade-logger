@@ -3,7 +3,6 @@
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from "@/src/components/ui/dialog"
@@ -13,7 +12,7 @@ import { Button } from "../ui/button";
 import PsychologyForm from "./components/psychologyForm";
 import GenralFrom from "./components/genralFrom";
 import { useState } from "react";
-import { useForm, FormProvider, Resolver } from "react-hook-form";
+import { useForm, FormProvider, Resolver, FieldErrors } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { createTradeSchema, CreateTradeInput } from "./createTradeSchema";
 import { createTrade, TradeInterface } from "@/src/actions/trade";
@@ -25,11 +24,11 @@ import { toast } from "sonner";
 const generalFields = [
     "symbol", "entry_price", "exit_price", "quantity", 
     "pnl_nominal", "pnl_percentage", "entry_time", "exit_time", 
-    "strategy_id", "side", "asset_class"
+    "strategy_id", "side", "asset_class", "trade_doc_url"
 ];
 
 const psychologyFields = [
-    "notes", "trade_image_url", "entry_confidence", 
+    "notes", "entry_confidence", 
     "satisfaction_rating", "mistakes_made", "lessons_learned"
 ];
 
@@ -64,22 +63,23 @@ export function AddTradeModel({
             notes: "",
             mistakes_made: [],
             lessons_learned: [],
-            trade_image_url: []
+            trade_doc_url: []
         }
         });
 
     const onSubmit = async (data: CreateTradeInput) => {
         setIsSubmitting(true);
         try {
-            const res = await createTrade(data as TradeInterface);
+            console.log("data: ", data);
+            const res = await createTrade(data as unknown as TradeInterface);
             if (res) {
                 setIsVisible(false);
                 methods.reset();
                 setActiveTab("general");
                 // Tell the dashboard to re-fetch all data
                 onTradeAdded?.();
-                const pnl = res.pnl_nominal ?? 0;
-                const symbol = res.symbol ?? "Trade";
+                const pnl = data.pnl_nominal ?? 0;
+                const symbol = data.symbol ?? "Trade";
                 toast.success(`${symbol} logged successfully`, {
                     description: `P&L: ${pnl >= 0 ? "+" : ""}₹${Number(pnl).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`,
                 });
@@ -88,7 +88,7 @@ export function AddTradeModel({
                     description: "Something went wrong. Please try again.",
                 });
             }
-        } catch (err) {
+        } catch {
             toast.error("Unexpected error", {
                 description: "Could not connect to the server.",
             });
@@ -97,7 +97,7 @@ export function AddTradeModel({
         }
     };
 
-    const onError = (errors: any) => {
+    const onError = (errors: FieldErrors<CreateTradeInput>) => {
         const errorKeys = Object.keys(errors);
         if (errorKeys.length > 0) {
             const firstErrorKey = errorKeys[0];

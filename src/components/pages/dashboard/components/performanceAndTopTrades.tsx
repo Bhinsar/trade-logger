@@ -77,7 +77,7 @@ const PerformanceAndTopTrades = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4 mx-3 mb-8">
-      <div className="lg:col-span-2 bg-[#1e2330] rounded-xl p-6 border border-white/5">
+      <div className="lg:col-span-2 bg-[#1e2330] rounded-xl p-6 h-full border border-white/5 flex flex-col">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <div className="bg-[#1c273c] p-2 rounded-lg border border-white/5">
@@ -100,12 +100,12 @@ const PerformanceAndTopTrades = () => {
           </div>
         </div>
 
-        <div className="h-[250px] w-full flex-grow">
+        <div className="h-[250px] w-full grow">
           {loadingGraph ? (
             <div className="w-full h-full bg-white/5 animate-pulse rounded-lg"></div>
           ) : chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <defs>
                   {/* Updated Gradient for richer glow */}
                   <linearGradient id="colorPnl" x1="0" y1="0" x2="0" y2="1">

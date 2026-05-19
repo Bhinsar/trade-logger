@@ -26,7 +26,7 @@ const ConfidenceIndex = () => {
 
   if (loading) {
     return (
-      <div className="bg-[#1e2330] rounded-xl p-5 border border-white/5 animate-pulse mt-4 p-3 mx-3">
+      <div className="bg-[#1e2330] rounded-xl border border-white/5 animate-pulse mt-4 p-3 mx-3">
         <div className="h-6 bg-white/5 rounded w-1/4 mb-4"></div>
         <div className="h-2 bg-white/5 rounded w-full mb-4"></div>
         <div className="h-4 bg-white/5 rounded w-1/2 mx-auto"></div>

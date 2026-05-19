@@ -3,10 +3,14 @@ import React, { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import FormInput from "@/src/components/common/formInput";
 import { CreateTradeInput } from "../createTradeSchema";
-import FileUpload from "../../common/fileUpload";
 import SearchableSelect from "../../common/searchableSelect";
 import { getAllStrategies } from "@/src/actions/strategie";
 import { searchStocks } from "@/src/actions/stockActions";
+
+import { UploadDropzone } from "@/src/utils/uploadthing";
+import { X, FileIcon } from "lucide-react";
+import Image from "next/image";
+import { toast } from "sonner";
 
 interface GenralFromProps {
   setIsAddStrategyOpen: (value: boolean) => void;
@@ -15,6 +19,16 @@ interface GenralFromProps {
 
 function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps) {
   const { control, watch, setValue, getValues } = useFormContext<CreateTradeInput>();
+  
+  const tradeDocUrls = watch("trade_doc_url") || [];
+
+  const handleRemoveFile = (urlToRemove: string) => {
+    setValue(
+      "trade_doc_url",
+      tradeDocUrls.filter((url) => url !== urlToRemove),
+      { shouldValidate: true }
+    );
+  };
 
   const entry_price = watch("entry_price");
   const exit_price = watch("exit_price");
@@ -197,7 +211,7 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
         required={true}
       />
     </div>
-    <FormInput
+    <FormInput  
       name="notes"
       control={control}
       label="Notes"
@@ -205,11 +219,70 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
       placeholder="Enter your notes here..."
       style="w-full h-30 "
     />
-    <FileUpload
-      name="trade_image_url"
-      control={control}
-      label="Trade Screenshots"
-    />
+    <div className="flex flex-col gap-2 pt-4">
+      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+        Trade Documents (Images/PDFs)
+      </label>
+      
+      {tradeDocUrls.length > 0 && (
+        <div className="flex flex-wrap gap-4 mb-2">
+          {tradeDocUrls.map((url, idx) => {
+            const isPdf = url.toLowerCase().endsWith(".pdf") || url.includes("type=pdf");
+            return (
+              <div key={idx} className="relative group border rounded-md overflow-hidden bg-muted/50 w-24 h-24 flex items-center justify-center hover:ring-2 hover:ring-primary/50 transition-all">
+                <a href={url} target="_blank" rel="noopener noreferrer" className="w-full h-full flex flex-col items-center justify-center z-0">
+                  {isPdf ? (
+                    <>
+                      <FileIcon className="h-10 w-10 text-red-500 mb-1 drop-shadow-sm" />
+                      <span className="text-[10px] font-semibold text-muted-foreground truncate w-full px-2 text-center uppercase tracking-wider">PDF</span>
+                    </>
+                  ) : (
+                    <Image
+                      src={url}
+                      alt={`Trade doc ${idx + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="96px"
+                    />
+                  )}
+                </a>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveFile(url)}
+                  className="absolute top-1 right-1 bg-background/80 hover:bg-destructive hover:text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <UploadDropzone
+        endpoint="tradeUploader"
+        config={{ mode: "auto" }}
+        onClientUploadComplete={(res) => {
+          // 'res' contains an array of the uploaded files
+          console.log("Files: ", res);
+          if (res && res.length > 0) {
+            const urls = res.map((file) => {
+              if (file.name.toLowerCase().endsWith('.pdf')) {
+                return `${file.url}?type=pdf`;
+              }
+              return file.url;
+            });
+            setValue("trade_doc_url", [...tradeDocUrls, ...urls], {
+              shouldValidate: true,
+            });
+          }
+        }}
+        onUploadError={(error: Error) => {
+          toast.error(`Upload Failed: ${error.message}`);
+        }}
+        className="ut-label:text-primary ut-button:bg-primary ut-button:ut-readying:bg-primary/50 ut-button:ut-uploading:bg-primary/50"
+      />
+    </div>
     </div>
   );
 }
