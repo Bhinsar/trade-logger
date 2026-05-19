@@ -6,11 +6,11 @@ export const ourFileRouter = {
   tradeUploader: f({
     image: {
       maxFileSize: "4MB",
-      maxFileCount: 4,
+      maxFileCount: 5,
     },
     pdf: {
       maxFileSize: "8MB",
-      maxFileCount: 2,
+      maxFileCount: 5,
     }
   })
     .onUploadComplete(async ({ file }) => {

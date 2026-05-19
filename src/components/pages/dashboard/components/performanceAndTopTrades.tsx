@@ -49,12 +49,26 @@ const PerformanceAndTopTrades = () => {
   }, [filter, refreshKey]);
 
   // Prepare chart data (Cumulative P&L)
-  let cumulativePnl = 0;
-  let chartData = graphTrades.map(t => {
-    cumulativePnl += t.pnl_nominal;
+  // Step 1: Aggregate P&L per date so multiple trades on the same day become one point
+  const dailyPnlMap = new Map<string, { label: string; pnl: number }>();
+  for (const t of graphTrades) {
     const d = new Date(t.exit_time);
+    const dateKey = `${d.getFullYear()}-${String(d.getMonth()).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const label = `${d.getDate()} ${d.toLocaleDateString('en-IN', { month: 'short' })}`;
+    const existing = dailyPnlMap.get(dateKey);
+    if (existing) {
+      existing.pnl += t.pnl_nominal;
+    } else {
+      dailyPnlMap.set(dateKey, { label, pnl: t.pnl_nominal });
+    }
+  }
+
+  // Step 2: Build cumulative series from the aggregated daily totals (Map preserves insertion order)
+  let cumulativePnl = 0;
+  let chartData = [...dailyPnlMap.values()].map(({ label, pnl: dayPnl }) => {
+    cumulativePnl += dayPnl;
     return {
-      date: `${d.getDate()} ${d.toLocaleDateString('en-IN', { month: 'short' })}`,
+      date: label,
       pnl: Number(cumulativePnl.toFixed(2)),
     };
   });

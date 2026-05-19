@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-import { useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 import FormInput from "@/src/components/common/formInput";
 import { CreateTradeInput } from "../createTradeSchema";
 import SearchableSelect from "../../common/searchableSelect";
@@ -11,6 +11,8 @@ import { UploadDropzone } from "@/src/utils/uploadthing";
 import { X, FileIcon } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
+import { FieldError } from "@/src/components/ui/field";
+import { cn } from "@/src/lib/utils";
 
 interface GenralFromProps {
   setIsAddStrategyOpen: (value: boolean) => void;
@@ -75,7 +77,7 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
         pnl = (exit - entry) * qty;
         pnlPercent = ((exit - entry) / entry) * 100;
       } else if (side === "Short") {
-        pnl = (entry - exit) * entry * qty / entry; // Standardizing short calc
+        pnl = (entry - exit) * qty;
         pnlPercent = ((entry - exit) / entry) * 100;
       }
 
@@ -219,10 +221,17 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
       placeholder="Enter your notes here..."
       style="w-full h-30 "
     />
-    <div className="flex flex-col gap-2 pt-4">
-      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-        Trade Documents (Images/PDFs)
-      </label>
+    <Controller
+      name="trade_doc_url"
+      control={control}
+      render={({ field, fieldState }) => (
+        <div className="flex flex-col gap-2 pt-4">
+          <label className={cn(
+            "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+            fieldState.invalid && "text-destructive"
+          )}>
+            Trade Documents (Images/PDFs)
+          </label>
       
       {tradeDocUrls.length > 0 && (
         <div className="flex flex-wrap gap-4 mb-2">
@@ -282,7 +291,10 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
         }}
         className="ut-label:text-primary ut-button:bg-primary ut-button:ut-readying:bg-primary/50 ut-button:ut-uploading:bg-primary/50"
       />
-    </div>
+      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+        </div>
+      )}
+    />
     </div>
   );
 }

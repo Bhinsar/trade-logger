@@ -5,9 +5,13 @@ import { cn } from "@/src/lib/utils";
 import Image from "next/image";
 import { StockTicker } from "./stock-ticker";
 import { UserInfo } from "@/src/actions/users/users.interface";
+import { Menu } from "lucide-react";
+import { useSidebar } from "./sidebarContext";
 
 function Header({ title }: { title: string }) {
   const [user, setUser] = useState<UserInfo | null>(null);
+  const { setMobileOpen } = useSidebar();
+
   useEffect(() => {
     getUserInfo().then((data) => {
       setUser(data);
@@ -28,7 +32,16 @@ function Header({ title }: { title: string }) {
     <div className="flex flex-col w-full sticky top-0 z-10 shadow-sm">
       
       <div className="flex justify-between items-center px-4 py-3 bg-background-secondary border-b border-background-border">
-        <h1 className="text-2xl font-semibold">{title}</h1>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="md:hidden flex items-center justify-center p-1.5 rounded-lg text-[#6b7094] hover:bg-background-secondary hover:text-[#c8ccd8] transition-colors cursor-pointer"
+            aria-label="Open sidebar"
+          >
+            <Menu size={20} />
+          </button>
+          <h1 className="text-2xl font-semibold">{title}</h1>
+        </div>
         <div className="flex items-center gap-2">
           <div
             className={cn(

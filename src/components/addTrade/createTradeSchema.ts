@@ -26,7 +26,7 @@ export const createTradeSchema = yup.object({
     .min(yup.ref('entry_time'), "Exit time must be after entry time"),
   strategy_id: yup.string().required("Strategy is required"),
   notes: yup.string().nullable().optional(),
-  trade_doc_url: yup.array().of(yup.string().url("Must be a valid URL").required()).nullable().optional(),
+  trade_doc_url: yup.array().of(yup.string().url("Must be a valid URL").required()).nullable().optional().max(5, "Maximum 5 documents allowed"),
   side: yup.string().oneOf(["Long", "Short"], "Trade side is required").required("Trade side is required") as yup.StringSchema<"Long" | "Short">,
   asset_class: yup.string().oneOf(["Equity", "Crypto", "Forex", "Options"], "Asset class is required").required("Asset class is required") as yup.StringSchema<"Equity" | "Crypto" | "Forex" | "Options">,
   entry_confidence: yup.number().typeError("Must be a number").min(1).max(10).nullable().optional(),
