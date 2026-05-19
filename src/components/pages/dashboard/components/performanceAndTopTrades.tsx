@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { LineChart as LineChartIcon } from 'lucide-react';
-import { getGraphTrades, getTrades, GraphTradeResponse, getTradeResponse } from '@/src/actions/trade';
+import {  GraphTradeResponse, getTradeResponse } from '@/src/actions/trades/trade.interface';
+import { getGraphTrades, getTrades } from '@/src/actions/trades/trade';
 import { useDashboardRefresh } from '../dashboardRefreshContext';
 
 const PerformanceAndTopTrades = () => {
@@ -20,12 +21,7 @@ const PerformanceAndTopTrades = () => {
           page: 1,
           limit: 5,
           sort: 'pnl_nominal:desc',
-          search: '',
-          entry_time: undefined as any,
-          exit_time: undefined as any,
-          asset_class: '',
-          profit: true,
-          loss: false,
+          profit: true
         });
         setTopTrades(topTradesData);
       } catch (error) {
@@ -90,7 +86,7 @@ const PerformanceAndTopTrades = () => {
               <button
                 key={f}
                 onClick={() => setFilter(f as any)}
-                className={`w-8 h-8 flex items-center justify-center text-xs font-bold rounded-lg transition-colors ${
+                className={`w-8 h-8 flex items-center justify-center text-xs font-bold rounded-lg transition-colors cursor-pointer ${
                   filter === f ? 'bg-[#3B82F6] text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
                 }`}
               >

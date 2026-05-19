@@ -11,9 +11,10 @@ import {
 import { cn } from "@/src/lib/utils";
 import { navSections } from "@/src/data/navItems";
 import Tooltip from "@/src/components/common/tooltip";
-import { getUserInfo, signOutUser, UserInfo } from "@/src/actions/user";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOutUser } from "@/src/actions/users/user";
+import { UserInfo } from "@/src/actions/users/users.interface";
 
 export default function SideBar() {
   const [collapsed, setCollapsed] = useState(false);

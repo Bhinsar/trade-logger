@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { cn } from "@/src/lib/utils";
-import { fetchNiftyTop10 } from "@/src/actions/stockActions";
+import { fetchNiftyTop10 } from "@/src/actions/stocks/stockActions";
 
 interface TickerItem {
   symbol: string;
@@ -62,8 +62,8 @@ export function StockTicker() {
 
   useEffect(() => {
     loadTicker();
-    const interval = setInterval(loadTicker, REFRESH_INTERVAL_MS);
-    return () => clearInterval(interval);
+    // const interval = setInterval(loadTicker, REFRESH_INTERVAL_MS);
+    // return () => clearInterval(interval);
   }, [loadTicker]);
 
   // ── Loading skeleton ───────────────────────────────────────────────────────

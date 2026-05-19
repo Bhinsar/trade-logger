@@ -1,5 +1,5 @@
 import SideBar from "@/src/components/common/sideBar";
-import { getUserInfo } from "@/src/actions/user";
+import { getUserInfo } from "@/src/actions/users/user";
 
 export default async function PrivateLayout({
   children,

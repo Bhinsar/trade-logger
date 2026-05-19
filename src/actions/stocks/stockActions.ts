@@ -1,6 +1,7 @@
 "use server";
 import { SmartAPI } from "smartapi-javascript";
 import speakeasy from "speakeasy";
+import { StockSearchResultItem, SmartAPISearchItem, StockMarketDataItem, SmartAPIMarketDataItem } from "./stock.interface";
 
 // ── Shared helper: creates an authenticated SmartAPI session ──────────────────
 async function getSmartAPISession() {
@@ -21,7 +22,7 @@ async function getSmartAPISession() {
 export async function searchStocks(
     query: string,
     exchange: "NSE" | "BSE" | "NFO" | "MCX" = "NSE"
-): Promise<{ label: string; value: string }[]> {
+): Promise<StockSearchResultItem[]> {
     if (!query || query.trim().length < 1) return [];
     try {
         const smart_api = await getSmartAPISession();
@@ -29,8 +30,8 @@ export async function searchStocks(
             exchange,
             searchscrip: query.trim().toUpperCase(),
         });
-        const data: any[] = Array.isArray(result) ? result : [];
-        return data.slice(0, 15).map((item: any) => ({
+        const data: SmartAPISearchItem[] = Array.isArray(result) ? result as SmartAPISearchItem[] : [];
+        return data.slice(0, 15).map((item: SmartAPISearchItem) => ({
             label: `${item.tradingsymbol} — ${item.symboltoken}`,
             value: item.tradingsymbol,
         }));
@@ -40,7 +41,7 @@ export async function searchStocks(
     }
 }
 
-export async function fetchNiftyTop10() {
+export async function fetchNiftyTop10(): Promise<StockMarketDataItem[]> {
     try {
         const smart_api = await getSmartAPISession();
 
@@ -54,11 +55,12 @@ export async function fetchNiftyTop10() {
                 NSE: tokens,
             },
         });
-        const fetched: any[] = result?.data?.fetched || [];
-        return fetched.map((item: any) => ({
+        const responseData = result as { data?: { fetched?: SmartAPIMarketDataItem[] } };
+        const fetched: SmartAPIMarketDataItem[] = responseData?.data?.fetched || [];
+        return fetched.map((item: SmartAPIMarketDataItem) => ({
             symbol: item.tradingSymbol || item.tradingsymbol || "Unknown",
             ltp: item.ltp,
-            token: item.symbolToken || item.symboltoken,
+            token: item.symbolToken || item.symboltoken || "",
             percentChange: item.percentChange ?? item.netChange ?? 0,
         }));
     } catch (error) {

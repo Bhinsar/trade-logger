@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { getDashboardStats } from '@/src/actions/trade';
+import { getDashboardStats } from '@/src/actions/trades/trade';
 import { useDashboardRefresh } from '../dashboardRefreshContext';
 
 const ConfidenceIndex = () => {

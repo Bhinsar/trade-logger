@@ -10,8 +10,9 @@ import {
   Zap,
   AlertTriangle,
 } from "lucide-react";
-import { getInsightStats, InsightStats } from "@/src/actions/trade";
+import { getInsightStats} from "@/src/actions/trades/trade";
 import { useDashboardRefresh } from "../dashboardRefreshContext";
+import { InsightStats } from "@/src/actions/trades/trade.interface";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const formatMinutes = (mins: number) => {

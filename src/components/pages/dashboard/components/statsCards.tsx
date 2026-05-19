@@ -1,8 +1,9 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { Wallet, Trophy, Scale, BarChart2 } from 'lucide-react';
-import { getDashboardStats, DashboardStats } from '@/src/actions/trade';
+import { getDashboardStats } from '@/src/actions/trades/trade';
 import { useDashboardRefresh } from '../dashboardRefreshContext';
+import { DashboardStats } from '@/src/actions/trades/trade.interface';
 
 const StatsCards = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);

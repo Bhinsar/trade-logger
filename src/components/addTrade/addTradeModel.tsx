@@ -15,10 +15,11 @@ import { useState } from "react";
 import { useForm, FormProvider, Resolver, FieldErrors } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { createTradeSchema, CreateTradeInput } from "./createTradeSchema";
-import { createTrade, TradeInterface } from "@/src/actions/trade";
+import { createTrade } from "@/src/actions/trades/trade";
 import { Brain, Info, Loader2 } from "lucide-react";
 import { AddStrategyModel } from "../addStrategy/addStrategyModel";
 import { toast } from "sonner";
+import { TradeInterface } from "@/src/actions/trades/trade.interface";
 
 
 const generalFields = [
@@ -71,7 +72,7 @@ export function AddTradeModel({
         setIsSubmitting(true);
         try {
             console.log("data: ", data);
-            const res = await createTrade(data as unknown as TradeInterface);
+            const res = await createTrade(data as TradeInterface);
             if (res) {
                 setIsVisible(false);
                 methods.reset();

@@ -1,9 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { getUserInfo, UserInfo } from "@/src/actions/user";
+import { getUserInfo } from "@/src/actions/users/user";
 import { cn } from "@/src/lib/utils";
 import Image from "next/image";
 import { StockTicker } from "./stock-ticker";
+import { UserInfo } from "@/src/actions/users/users.interface";
 
 function Header({ title }: { title: string }) {
   const [user, setUser] = useState<UserInfo | null>(null);

@@ -4,8 +4,8 @@ import { useFormContext } from "react-hook-form";
 import FormInput from "@/src/components/common/formInput";
 import { CreateTradeInput } from "../createTradeSchema";
 import SearchableSelect from "../../common/searchableSelect";
-import { getAllStrategies } from "@/src/actions/strategie";
-import { searchStocks } from "@/src/actions/stockActions";
+import { getAllStrategies } from "@/src/actions/strategies/strategie";
+import { searchStocks } from "@/src/actions/stocks/stockActions";
 
 import { UploadDropzone } from "@/src/utils/uploadthing";
 import { X, FileIcon } from "lucide-react";

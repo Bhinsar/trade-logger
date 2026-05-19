@@ -1,45 +1,24 @@
 "use server";
 
 import { auth } from "@/src/app/api/auth/[...nextauth]/route";
-import { connectToDatabase } from "../lib/mongodb";
-import { Trade } from "../models/Trade";
-import { signOutUser } from "./user";
+import { connectToDatabase } from "../../lib/mongodb";
+import { Trade } from "../../models/Trade";
+import { signOutUser } from "../users/user";
 import { revalidatePath } from "next/cache";
 
-// Enums and Interfaces
-enum SideValue {
-  Long = "Long",
-  Short = "Short"
-}
-
-enum AssetClassValues {
-  Equity = "Equity",
-  Crypto = "Crypto",
-  Forex = "Forex",
-  Options = "Options"
-}
-
-export interface TradeInterface {
-  id?: string | null;
-  user_id?: string | null;
-  symbol: string;
-  entry_price: number;
-  exit_price: number;
-  quantity: number;
-  pnl_nominal: number;
-  pnl_percentage: number;
-  entry_time: Date;
-  exit_time: Date;
-  strategy_id: string;
-  notes?: string | null;
-  trade_doc_url?: string[] | null;
-  side: SideValue;
-  asset_class: AssetClassValues;
-  entry_confidence?: number | null;
-  satisfaction_rating?: number | null;
-  mistakes_made?: string[] | null;
-  lessons_learned?: string[] | null;
-}
+import {
+  SideValue,
+  AssetClassValues,
+  TradeInterface,
+  DashboardStats,
+  getTradeResponse,
+  getTradesParams,
+  GraphTradeResponse,
+  SymbolStat,
+  InsightStats,
+  TradeDocument,
+  TradeQuery
+} from "./trade.interface";
 
 export async function createTrade(trade: TradeInterface): Promise<TradeInterface | null> {
   const session = await auth();
@@ -69,17 +48,7 @@ export async function createTrade(trade: TradeInterface): Promise<TradeInterface
   }
 }
 
-export interface DashboardStats {
-  highestPnl: number;
-  winRate: number;
-  avgRiskReward: string;
-  tradesThisMonth: number;
-  highestPnlChange: number | null;
-  winRateChange: number | null;
-  avgRiskRewardChange: number | null;
-  tradesThisMonthChange: number | null;
-  avgConfidence: number;
-}
+
 
 export async function getDashboardStats(): Promise<DashboardStats | null> {
   const session = await auth();
@@ -103,11 +72,11 @@ export async function getDashboardStats(): Promise<DashboardStats | null> {
 
     const trades = await Trade.find({ user_id: userId, is_deleted: { $ne: true } }).lean();
 
-    const tradesLast30Days = trades.filter((t: any) => new Date(t.entry_time) >= thirtyDaysAgo);
-    const tradesPrev30Days = trades.filter((t: any) => new Date(t.entry_time) >= sixtyDaysAgo && new Date(t.entry_time) < thirtyDaysAgo);
-    const tradesThisMonthArr = trades.filter((t: any) => new Date(t.entry_time) >= thisMonthStart);
+    const tradesLast30Days = trades.filter((t: TradeDocument) => new Date(t.entry_time) >= thirtyDaysAgo);
+    const tradesPrev30Days = trades.filter((t: TradeDocument) => new Date(t.entry_time) >= sixtyDaysAgo && new Date(t.entry_time) < thirtyDaysAgo);
+    const tradesThisMonthArr = trades.filter((t: TradeDocument) => new Date(t.entry_time) >= thisMonthStart);
 
-    const calcStats = (tradeSet: any[]) => {
+    const calcStats = (tradeSet: TradeDocument[]) => {
       let highestPnl = 0;
       let wins = 0;
       let totalWinningPnl = 0;
@@ -152,7 +121,7 @@ export async function getDashboardStats(): Promise<DashboardStats | null> {
     const avgRiskRewardChange = prevStats.avgRiskRewardRatio > 0 ? ((currentStats.avgRiskRewardRatio - prevStats.avgRiskRewardRatio) / prevStats.avgRiskRewardRatio) * 100 : null;
     
     const tradesThisMonth = tradesThisMonthArr.length;
-    const tradesPrevMonthArr = trades.filter((t: any) => {
+    const tradesPrevMonthArr = trades.filter((t: TradeDocument) => {
       const d = new Date(t.entry_time);
       return d.getMonth() === (now.getMonth() === 0 ? 11 : now.getMonth() - 1) && 
              d.getFullYear() === (now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear());
@@ -176,25 +145,7 @@ export async function getDashboardStats(): Promise<DashboardStats | null> {
   }
 }
 
-export interface getTradeResponse {
-  id: string;
-  symbol: string;
-  pnl_nominal: number;
-  entry_time: Date;
-  side: string;
-}
 
-export interface getTradesParams {
-  page: number;
-  sort: string;
-  search: string;
-  entry_time: Date;
-  exit_time: Date;
-  asset_class: string;
-  limit: number;
-  profit: boolean;
-  loss: boolean;
-}
 
 
 export async function getTrades({
@@ -218,7 +169,7 @@ export async function getTrades({
     await connectToDatabase();
 
     // 1. Build Query Object
-    const query: any = {
+    const query: TradeQuery = {
       user_id: session.user.id,
       is_deleted: { $ne: true },
     };
@@ -256,11 +207,11 @@ export async function getTrades({
       .lean();
 
     // 3. Map Results
-    return trades.map((t: any) => ({
+    return trades.map((t: TradeDocument) => ({
       id: t._id.toString(),
       symbol: t.symbol,
       pnl_nominal: parseFloat(t.pnl_nominal?.toString() || "0"),
-      entry_time: t.entry_time,
+      entry_time: new Date(t.entry_time),
       side: t.side,
     }));
 
@@ -270,13 +221,7 @@ export async function getTrades({
   }
 }
 
-export interface GraphTradeResponse {
-  id: string;
-  symbol: string;
-  pnl_nominal: number;
-  exit_time: Date;
-  side: string;
-}
+
 
 export async function getGraphTrades(filter: 'D' | 'W' | 'M' | 'All' = 'M'): Promise<GraphTradeResponse[]> {
   const session = await auth();
@@ -288,7 +233,7 @@ export async function getGraphTrades(filter: 'D' | 'W' | 'M' | 'All' = 'M'): Pro
   try {
     await connectToDatabase();
     
-    const query: any = {
+    const query: TradeQuery = {
       user_id: session.user.id,
       is_deleted: { $ne: true }
     };
@@ -310,11 +255,11 @@ export async function getGraphTrades(filter: 'D' | 'W' | 'M' | 'All' = 'M'): Pro
       .sort({ exit_time: 1 }) // oldest to newest
       .lean();
 
-    return trades.map((t: any) => ({
+    return trades.map((t: TradeDocument) => ({
       id: t._id.toString(),
       symbol: t.symbol,
       pnl_nominal: parseFloat(t.pnl_nominal?.toString() || "0"),
-      exit_time: t.exit_time,
+      exit_time: new Date(t.exit_time),
       side: t.side,
     }));
   } catch (error) {
@@ -325,23 +270,7 @@ export async function getGraphTrades(filter: 'D' | 'W' | 'M' | 'All' = 'M'): Pro
 
 // ─── Insight Stats ────────────────────────────────────────────────────────────
 
-export interface SymbolStat {
-  symbol: string;
-  trades: number;
-  wins: number;
-  winRate: number;
-}
 
-export interface InsightStats {
-  currentStreak: number;      // positive = win streak, negative = loss streak
-  longestWinStreak: number;
-  longestLossStreak: number;
-  avgLoss: number;
-  biggestLoss: number;
-  avgHoldMinutes: number;     // average hold time in minutes
-  topSymbols: SymbolStat[];   // top 5 most traded symbols
-  profitFactor: number;       // gross profit / gross loss
-}
 
 export async function getInsightStats(): Promise<InsightStats | null> {
   const session = await auth();
@@ -349,7 +278,7 @@ export async function getInsightStats(): Promise<InsightStats | null> {
 
   try {
     await connectToDatabase();
-    const trades: any[] = await Trade.find({
+    const trades: TradeDocument[] = await Trade.find({
       user_id: session.user.id,
       is_deleted: { $ne: true },
     })

@@ -4,14 +4,7 @@ import { auth, signOut } from "@/src/app/api/auth/[...nextauth]/route";
 import { connectToDatabase } from "@/src/lib/mongodb";
 import { User } from "@/src/models/User";
 
-export type UserInfo = {
-  id: string;
-  name: string | null;
-  email: string | null;
-  image: string | null;
-  firstName: string | null;
-  lastName: string | null;
-};
+import { UserInfo } from "./users.interface";
 
 /**
  * Fetches the current session user's profile, enriched with DB fields.

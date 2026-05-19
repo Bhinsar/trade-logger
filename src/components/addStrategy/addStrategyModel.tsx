@@ -8,7 +8,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/src/components/ui/dialog"
-import { createStrategy } from "@/src/actions/strategie";
+import { createStrategy } from "@/src/actions/strategies/strategie";
 import FormInput from "../common/formInput";
 import { useForm, Resolver } from "react-hook-form";
 import { Button } from "../ui/button";
