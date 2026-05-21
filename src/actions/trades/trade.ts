@@ -562,3 +562,37 @@ export async function getInsightStats(): Promise<InsightStats | null> {
     return null;
   }
 }
+
+export async function getCalendarTrades(year: number, month: number): Promise<GraphTradeResponse[]> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return [];
+  }
+
+  try {
+    await connectToDatabase();
+    
+    // Create UTC date bounds for the queried month
+    const startDate = new Date(Date.UTC(year, month, 1));
+    const endDate = new Date(Date.UTC(year, month + 1, 1));
+
+    const trades = await Trade.find({
+      user_id: session.user.id,
+      is_deleted: { $ne: true },
+      exit_time: { $gte: startDate, $lt: endDate }
+    })
+      .sort({ exit_time: 1 })
+      .lean();
+
+    return trades.map((t: any) => ({
+      id: t._id.toString(),
+      symbol: t.symbol,
+      pnl_nominal: parseFloat(t.pnl_nominal?.toString() || "0"),
+      exit_time: new Date(t.exit_time),
+      side: t.side,
+    }));
+  } catch (error) {
+    console.error("Error fetching calendar trades:", error);
+    return [];
+  }
+}

@@ -7,6 +7,7 @@ import StatsCards from "./components/statsCards";
 import ConfidenceIndex from "./components/confidenceIndex";
 import PerformanceAndTopTrades from "./components/performanceAndTopTrades";
 import InsightCards from "./components/insightCards";
+import TradingCalendar from "@/src/components/pages/calendar/components/tradingCalendar";
 import { DashboardRefreshProvider, useDashboardRefresh } from "./dashboardRefreshContext";
 
 // Inner component so it can consume the context
@@ -21,6 +22,9 @@ function DashboardInner() {
       <StatsCards />
       <ConfidenceIndex />
       <PerformanceAndTopTrades />
+      <div className="mx-3 mt-4">
+        <TradingCalendar mini={true} />
+      </div>
       <InsightCards />
       <AddTradeModel
         isVisible={isVisible}
