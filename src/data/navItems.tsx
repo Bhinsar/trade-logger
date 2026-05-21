@@ -1,13 +1,11 @@
 import {
-  BarChart2,
-  BookOpen,
-  CircleDollarSign,
+  Calendar,
   LayoutDashboard,
-  LineChart,
-  Target,
+  Lightbulb,
   TrendingUp,
-  Wallet,
 } from "lucide-react";
+import { IoWarningOutline } from "react-icons/io5";
+import { TbChecklist } from "react-icons/tb";
 
 export interface NavItem {
   id: string;
@@ -29,39 +27,65 @@ export const navSections: NavItem[] = [
     icon: <LayoutDashboard size={18} />,
     href: "/dashboard",
   },
+ 
   {
-    id: "portfolio",
-    label: "Portfolio",
-    icon: <Wallet size={18} />,
+    id: "tradeschecklist",
+    label: "Trade Checklist",
+    icon: <TbChecklist size={18} />,
+    href: "/trades-checklist",
   },
   {
     id: "trades",
     label: "Trades",
     icon: <TrendingUp size={18} />,
+    href: "/trades",
   },
   {
-    id: "positions",
-    label: "Positions",
-    icon: <Target size={18} />,
+    id: "strategy",
+    label: "Strategy",
+    icon: <Lightbulb size={18} />,
+    href: "/strategy",
   },
   {
-    id: "orders",
-    label: "Orders",
-    icon: <CircleDollarSign size={18} />,
+    id: "mistakes",
+    label: "Mistakes",
+    icon: <IoWarningOutline size={18} />,
+    href: "/mistakes",
   },
   {
-    id: "analytics",
-    label: "Analytics",
-    icon: <BarChart2 size={18} />,
+    id: "calendar",
+    label: "Calendar",
+    icon: <Calendar size={18} />,
+    href: "/calendar",
   },
-  {
-    id: "performance",
-    label: "Performance",
-    icon: <LineChart size={18} />,
-  },
-  {
-    id: "journal",
-    label: "Journal",
-    icon: <BookOpen size={18} />,
-  },
+   // {
+  //   id: "portfolio",
+  //   label: "Portfolio",
+  //   icon: <Wallet size={18} />,
+  // },
+  // {
+  //   id: "positions",
+  //   label: "Positions",
+  //   icon: <Target size={18} />,
+  // },
+  // {
+  //   id: "orders",
+  //   label: "Orders",
+  //   icon: <CircleDollarSign size={18} />,
+  // },
+  // {
+  //   id: "analytics",
+  //   label: "Analytics",
+  //   icon: <BarChart2 size={18} />,
+  // },
+  // {
+  //   id: "performance",
+  //   label: "Performance",
+  //   icon: <LineChart size={18} />,
+  // },
+  // {
+  //   id: "journal",
+  //   label: "Journal",
+  //   icon: <BookOpen size={18} />,
+  // },
 ];

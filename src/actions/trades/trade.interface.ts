@@ -44,12 +44,33 @@ export interface DashboardStats {
   avgConfidence: number;
 }
 
-export interface getTradeResponse {
+export interface Trade {
   id: string;
   symbol: string;
   pnl_nominal: number;
+  pnl_percentage: number;
+  entry_price: number;
+  exit_price: number;
+  quantity: number;
   entry_time: Date;
+  exit_time: Date;
   side: string;
+  asset_class: string;
+  strategy_id?: string;
+}
+
+export interface TradeDetail extends Trade {
+  notes?: string | null;
+  trade_doc_url?: string[] | null;
+  entry_confidence?: number | null;
+  satisfaction_rating?: number | null;
+  mistakes_made?: string[] | null;
+  lessons_learned?: string[] | null;
+}
+
+export interface getTradeResponse {
+  trades: Trade[];
+  totalCount: number;
 }
 
 export interface getTradesParams {

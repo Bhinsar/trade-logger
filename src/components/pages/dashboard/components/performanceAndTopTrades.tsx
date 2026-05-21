@@ -5,10 +5,11 @@ import { LineChart as LineChartIcon } from 'lucide-react';
 import {  GraphTradeResponse, getTradeResponse } from '@/src/actions/trades/trade.interface';
 import { getGraphTrades, getTrades } from '@/src/actions/trades/trade';
 import { useDashboardRefresh } from '../dashboardRefreshContext';
+import { Trade } from '@/src/actions/trades/trade.interface';
 
 const PerformanceAndTopTrades = () => {
   const [graphTrades, setGraphTrades] = useState<GraphTradeResponse[]>([]);
-  const [topTrades, setTopTrades] = useState<getTradeResponse[]>([]);
+  const [topTrades, setTopTrades] = useState<Trade[]>([]);
   const [loadingGraph, setLoadingGraph] = useState(true);
   const [loadingTop, setLoadingTop] = useState(true);
   const [filter, setFilter] = useState<'M' | 'W' | 'D'>('M');
@@ -23,7 +24,7 @@ const PerformanceAndTopTrades = () => {
           sort: 'pnl_nominal:desc',
           profit: true
         });
-        setTopTrades(topTradesData);
+        setTopTrades(topTradesData.trades);
       } catch (error) {
         console.error("Failed to load top trades", error);
       } finally {
@@ -110,7 +111,7 @@ const PerformanceAndTopTrades = () => {
           </div>
         </div>
 
-        <div className="h-[250px] w-full grow">
+        <div className="h-62.5 w-full grow">
           {loadingGraph ? (
             <div className="w-full h-full bg-white/5 animate-pulse rounded-lg"></div>
           ) : chartData.length > 0 ? (
@@ -176,12 +177,12 @@ const PerformanceAndTopTrades = () => {
       </div>
 
       {/* Top 5 Trades Card */}
-      <div className="bg-[#1e2330] rounded-xl p-6 border border-white/5 flex flex-col h-full min-h-[350px]">
+      <div className="bg-[#1e2330] rounded-xl p-6 border border-white/5 flex flex-col h-full min-h-87.5">
         <h2 className="text-xl font-bold text-white tracking-wide mb-6">Top Trades</h2>
-        <div className="space-y-4 flex-grow">
+        <div className="space-y-4 grow">
           {loadingTop ? (
             Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-white/5 animate-pulse h-[60px]"></div>
+              <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-white/5 animate-pulse h-15"></div>
             ))
           ) : topTrades.length > 0 ? (
             topTrades.map((trade, i) => (

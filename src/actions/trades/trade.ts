@@ -10,6 +10,7 @@ import {
   SideValue,
   AssetClassValues,
   TradeInterface,
+  TradeDetail,
   DashboardStats,
   getTradeResponse,
   getTradesParams,
@@ -45,6 +46,82 @@ export async function createTrade(trade: TradeInterface): Promise<TradeInterface
   } catch (error) {
     console.error("Database Error:", error);
     return null;
+  }
+}
+
+export async function getTradeById(id: string): Promise<TradeDetail | null> {
+  const session = await auth();
+  if (!session?.user?.id) return null;
+
+  try {
+    await connectToDatabase();
+    const t = await Trade.findOne({
+      _id: id,
+      user_id: session.user.id,
+      is_deleted: { $ne: true },
+    }).lean() as unknown as (TradeDocument & { pnl_percentage?: number; entry_price?: { toString(): string } | number; exit_price?: { toString(): string } | number; quantity?: { toString(): string } | number; notes?: string; trade_doc_url?: string[]; entry_confidence?: number; satisfaction_rating?: number; mistakes_made?: string[]; lessons_learned?: string[]; strategy_id?: string }) | null;
+    if (!t) return null;
+    return {
+      id: t._id.toString(),
+      symbol: t.symbol,
+      pnl_nominal: parseFloat(t.pnl_nominal?.toString() || "0"),
+      pnl_percentage: t.pnl_percentage ?? 0,
+      entry_price: parseFloat(t.entry_price?.toString() || "0"),
+      exit_price: parseFloat(t.exit_price?.toString() || "0"),
+      quantity: parseFloat(t.quantity?.toString() || "0"),
+      entry_time: new Date(t.entry_time),
+      exit_time: new Date(t.exit_time),
+      side: t.side,
+      asset_class: t.asset_class,
+      strategy_id: t.strategy_id,
+      notes: t.notes ?? null,
+      trade_doc_url: t.trade_doc_url ?? null,
+      entry_confidence: t.entry_confidence ?? null,
+      satisfaction_rating: t.satisfaction_rating ?? null,
+      mistakes_made: t.mistakes_made ?? null,
+      lessons_learned: t.lessons_learned ?? null,
+    };
+  } catch (error) {
+    console.error("Error fetching trade by id:", error);
+    return null;
+  }
+}
+
+export async function updateTrade(id: string, trade: Partial<TradeInterface>): Promise<boolean> {
+  const session = await auth();
+  if (!session?.user?.id) return false;
+
+  try {
+    await connectToDatabase();
+    const result = await Trade.updateOne(
+      { _id: id, user_id: session.user.id, is_deleted: { $ne: true } },
+      { $set: trade },
+    );
+    revalidatePath("/trade");
+    revalidatePath("/dashboard");
+    return result.modifiedCount > 0;
+  } catch (error) {
+    console.error("Error updating trade:", error);
+    return false;
+  }
+}
+
+export async function deleteTrade(id: string): Promise<boolean> {
+  const session = await auth();
+  if (!session?.user?.id) return false;
+
+  try {
+    await connectToDatabase();
+    const result = await Trade.updateOne(
+      { _id: id, user_id: session.user.id },
+      { $set: { is_deleted: true, delete_at: new Date() } },
+    );
+    revalidatePath("/trade");
+    revalidatePath("/dashboard");
+    return result.modifiedCount > 0;
+  } catch (error) {
+    console.error("Error deleting trade:", error);
+    return false;
   }
 }
 
@@ -148,39 +225,111 @@ export async function getDashboardStats(): Promise<DashboardStats | null> {
 
 
 
-export async function getTrades({
-  page, 
-  sort, 
-  search, 
-  entry_time, 
-  exit_time, 
-  asset_class, 
-  limit, 
-  profit, 
-  loss
-}: getTradesParams): Promise<getTradeResponse[]> {
+// export async function getTrades({
+//   page, 
+//   sort, 
+//   search, 
+//   entry_time, 
+//   exit_time, 
+//   asset_class, 
+//   limit, 
+//   profit, 
+//   loss
+// }: getTradesParams): Promise<getTradeResponse[]> {
+//   const session = await auth();
+  
+//   if (!session?.user?.id) {
+//     return [];
+//   }
+
+//   try {
+//     await connectToDatabase();
+
+//     // 1. Build Query Object
+//     const query: TradeQuery = {
+//       user_id: session.user.id,
+//       is_deleted: { $ne: true },
+//     };
+
+//     // Handle Profit/Loss filtering logic
+//     if (profit && !loss) {
+//       query.pnl_nominal = { $gt: 0 };
+//     } else if (loss && !profit) {
+//       query.pnl_nominal = { $lt: 0 };
+//     }
+//     // If both are true or both are false, we show all (no filter applied)
+
+//     if (search) {
+//       query.symbol = { $regex: search, $options: "i" };
+//     }
+
+//     if (entry_time && exit_time) {
+//       query.entry_time = { $gte: entry_time, $lte: exit_time };
+//     } else if (entry_time) {
+//       query.entry_time = { $gte: entry_time };
+//     } else if (exit_time) {
+//       // Assuming you want to filter entry_time by the exit deadline if exit_time is provided
+//       query.entry_time = { $lte: exit_time };
+//     }
+
+//     if (asset_class) {
+//       query.asset_class = asset_class;
+//     }
+
+//     // 2. Execute Query
+//     const trades = await Trade.find(query)
+//       .sort(sort ? { [sort.split(':')[0]]: sort.split(':')[1] === 'desc' ? -1 : 1 } : { entry_time: -1 })
+//       .skip((page - 1) * limit)
+//       .limit(limit)
+//       .lean();
+
+//     // 3. Map Results
+//     return {
+//       trades: trades.map((t: TradeDocument) => ({
+//         id: t._id.toString(),
+//         symbol: t.symbol,
+//         pnl_nominal: parseFloat(t.pnl_nominal?.toString() || "0"),
+//         pnl_percentage: parseFloat((t as unknown as { pnl_percentage?: { toString(): string } | number | string }).pnl_percentage?.toString() || "0"),
+//         entry_price: parseFloat((t as unknown as { entry_price?: { toString(): string } | number | string }).entry_price?.toString() || "0"),
+//         exit_price: parseFloat((t as unknown as { exit_price?: { toString(): string } | number | string }).exit_price?.toString() || "0"),
+//         quantity: parseFloat((t as unknown as { quantity?: { toString(): string } | number | string }).quantity?.toString() || "0"),
+//         entry_time: new Date(t.entry_time),
+//         exit_time: new Date(t.exit_time),
+//         side: t.side,
+//         asset_class: t.asset_class,
+//         strategy_id: (t as unknown as { strategy_id?: string }).strategy_id,
+//       })),
+//       totalCount,
+//     };
+
+//   } catch (error) {
+//     console.error("Error fetching dashboard trades:", error);
+//     return [];
+//   }
+// }
+
+export async function getTrades(params: getTradesParams): Promise<getTradeResponse> {
   const session = await auth();
   
   if (!session?.user?.id) {
-    return [];
+    return { trades: [], totalCount: 0 };
   }
 
   try {
     await connectToDatabase();
 
-    // 1. Build Query Object
+    const { page, sort, search, entry_time, exit_time, asset_class, limit, profit, loss } = params;
+
     const query: TradeQuery = {
       user_id: session.user.id,
       is_deleted: { $ne: true },
     };
 
-    // Handle Profit/Loss filtering logic
     if (profit && !loss) {
       query.pnl_nominal = { $gt: 0 };
     } else if (loss && !profit) {
       query.pnl_nominal = { $lt: 0 };
     }
-    // If both are true or both are false, we show all (no filter applied)
 
     if (search) {
       query.symbol = { $regex: search, $options: "i" };
@@ -191,7 +340,6 @@ export async function getTrades({
     } else if (entry_time) {
       query.entry_time = { $gte: entry_time };
     } else if (exit_time) {
-      // Assuming you want to filter entry_time by the exit deadline if exit_time is provided
       query.entry_time = { $lte: exit_time };
     }
 
@@ -199,25 +347,36 @@ export async function getTrades({
       query.asset_class = asset_class;
     }
 
-    // 2. Execute Query
-    const trades = await Trade.find(query)
-      .sort(sort ? { [sort.split(':')[0]]: sort.split(':')[1] === 'desc' ? -1 : 1 } : { entry_time: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+    const [trades, totalCount] = await Promise.all([
+      Trade.find(query)
+        .sort(sort ? { [sort.split(':')[0]]: sort.split(':')[1] === 'desc' ? -1 : 1 } : { entry_time: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      Trade.countDocuments(query),
+    ]);
 
-    // 3. Map Results
-    return trades.map((t: TradeDocument) => ({
-      id: t._id.toString(),
-      symbol: t.symbol,
-      pnl_nominal: parseFloat(t.pnl_nominal?.toString() || "0"),
-      entry_time: new Date(t.entry_time),
-      side: t.side,
-    }));
+    return {
+      trades: trades.map((t: TradeDocument) => ({
+        id: t._id.toString(),
+        symbol: t.symbol,
+        pnl_nominal: parseFloat(t.pnl_nominal?.toString() || "0"),
+        pnl_percentage: parseFloat((t as unknown as { pnl_percentage?: { toString(): string } | number | string }).pnl_percentage?.toString() || "0"),
+        entry_price: parseFloat((t as unknown as { entry_price?: { toString(): string } | number | string }).entry_price?.toString() || "0"),
+        exit_price: parseFloat((t as unknown as { exit_price?: { toString(): string } | number | string }).exit_price?.toString() || "0"),
+        quantity: parseFloat((t as unknown as { quantity?: { toString(): string } | number | string }).quantity?.toString() || "0"),
+        entry_time: new Date(t.entry_time),
+        exit_time: new Date(t.exit_time),
+        side: t.side,
+        asset_class: t.asset_class,
+        strategy_id: (t as unknown as { strategy_id?: string }).strategy_id,
+      })),
+      totalCount,
+    };
 
   } catch (error) {
-    console.error("Error fetching dashboard trades:", error);
-    return [];
+    console.error("Error fetching trades with count:", error);
+    return { trades: [], totalCount: 0 };
   }
 }
 

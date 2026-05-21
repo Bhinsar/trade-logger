@@ -36,6 +36,7 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
   const exit_price = watch("exit_price");
   const quantity = watch("quantity");
   const side = watch("side");
+  const symbol = watch("symbol");
 
   const pnl_nominal = watch("pnl_nominal") || 0;
 
@@ -102,6 +103,7 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
         label="Symbol"
         placeholder="Search NSE symbol…"
         required={true}
+        options={symbol ? [{ label: symbol, value: symbol }] : []}
         onSearch={async (search) => {
           if (!search || search.trim().length < 1) return [];
           return searchStocks(search);
