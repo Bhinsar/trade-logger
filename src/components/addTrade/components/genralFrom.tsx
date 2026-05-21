@@ -165,8 +165,9 @@ function GenralFrom({ setIsAddStrategyOpen, setStrategySearch }: GenralFromProps
         label="Strategy"
         placeholder="Search strategies..."
         onSearch={async (search) => {
-          const strategies = await getAllStrategies({ search, limit: 10 });
-          return (strategies || []).map((s: any) => ({
+          const res = await getAllStrategies({ search, limit: 10 });
+          const strategies = res?.strategies || [];
+          return strategies.map((s: any) => ({
             label: s.title,
             value: s._id || s.id,
           }));

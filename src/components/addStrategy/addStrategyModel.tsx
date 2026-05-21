@@ -8,48 +8,62 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/src/components/ui/dialog"
-import { createStrategy } from "@/src/actions/strategies/strategie";
+import { createStrategy, updateStrategy } from "@/src/actions/strategies/strategie";
 import FormInput from "../common/formInput";
 import { useForm, Resolver } from "react-hook-form";
 import { Button } from "../ui/button";
 import { Loader2 } from "lucide-react";
 import { createStrategySchema, CreateStrategyInput } from "./createStrategySchema";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { strategy } from "@/src/actions/strategies/strategie.interface";
 
 interface AddStrategyModelProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess?: (newStrategy: any) => void;
     initialTitle?: string;
+    editData?: strategy | null;
+    strategyId?: string;
 }
 
-export function AddStrategyModel({ isOpen, onClose, onSuccess, initialTitle }: AddStrategyModelProps) {
+export function AddStrategyModel({ isOpen, onClose, onSuccess, initialTitle, editData, strategyId }: AddStrategyModelProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const isEditMode = Boolean(editData && strategyId);
+
     const { control, handleSubmit, reset } = useForm({
         resolver: yupResolver(createStrategySchema) as Resolver<CreateStrategyInput>,
         defaultValues: {
-            title: initialTitle || "",
-            description: ""
+            title: editData?.title || initialTitle || "",
+            description: editData?.description || ""
         }
     });
 
     useEffect(() => {
         if (isOpen) {
             reset({
-                title: initialTitle || "",
-                description: ""
+                title: editData?.title || initialTitle || "",
+                description: editData?.description || ""
             });
         }
-    }, [initialTitle, isOpen, reset]);
+    }, [initialTitle, isOpen, reset, editData]);
 
     const onSubmit = async (data: any) => {
         setIsLoading(true);
         try {
-            const result = await createStrategy(data);
-            if (result) {
-                onSuccess?.(result);
-                reset();
-                onClose();
+            if (isEditMode && strategyId) {
+                const ok = await updateStrategy(strategyId, data);
+                if (ok) {
+                    onSuccess?.({ ...editData, ...data });
+                    reset();
+                    onClose();
+                }
+            } else {
+                const result = await createStrategy(data);
+                if (result) {
+                    onSuccess?.(result);
+                    reset();
+                    onClose();
+                }
             }
         } catch (error) {
             console.error(error);
@@ -62,9 +76,11 @@ export function AddStrategyModel({ isOpen, onClose, onSuccess, initialTitle }: A
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Add New Strategy</DialogTitle>
+                    <DialogTitle>{isEditMode ? "Edit Strategy" : "Add New Strategy"}</DialogTitle>
                     <DialogDescription>
-                        Create a new trading strategy to log your trades.
+                        {isEditMode 
+                            ? "Modify details of your trading strategy." 
+                            : "Create a new trading strategy to log your trades."}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
@@ -87,9 +103,9 @@ export function AddStrategyModel({ isOpen, onClose, onSuccess, initialTitle }: A
                         <Button type="button" variant="outline" onClick={onClose}>
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isLoading}>
+                        <Button type="submit" disabled={isLoading} className="cursor-pointer">
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Create Strategy
+                            {isEditMode ? "Save Changes" : "Create Strategy"}
                         </Button>
                     </div>
                 </form>

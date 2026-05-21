@@ -58,7 +58,7 @@ const StatsCards = () => {
           </h2>
           <div className="text-[11px] text-gray-500 font-medium">
             <span className={stats.highestPnlChange && stats.highestPnlChange > 0 ? "text-emerald-500" : stats.highestPnlChange && stats.highestPnlChange < 0 ? "text-red-500" : ""}>
-              {stats.highestPnlChange ? `${stats.highestPnlChange > 0 ? '+' : ''}${stats.highestPnlChange.toFixed(1)}%` : 'null%'}
+              {stats.highestPnlChange ? `${stats.highestPnlChange > 0 ? '+' : ''}${stats.highestPnlChange.toFixed(1)}%` : '0%'}
             </span>
             {' vs last 30 days'}
           </div>
