@@ -13,6 +13,7 @@ import { cn } from "@/src/lib/utils";
 import { navSections } from "@/src/types/navItems";
 import Tooltip from "@/src/components/common/tooltip";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOutUser } from "@/src/actions/users/user";
 import { UserInfo } from "@/src/actions/users/users.interface";
@@ -73,9 +74,12 @@ export default function SideBar() {
             )}
           >
             {/* Logo mark */}
-            <div className="shrink-0 size-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+            {/* <div className="shrink-0 size-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
               <TrendingUp size={14} className="text-white" />
-            </div>
+              
+               
+            </div> */}
+            <Image src="/icon.png" alt="logo" width={20} height={20} />
             <span className="text-sm font-semibold whitespace-nowrap tracking-tight">
               Trade Logger
             </span>
