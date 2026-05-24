@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
-import { navSections } from "@/src/data/navItems";
+import { navSections } from "@/src/types/navItems";
 import Tooltip from "@/src/components/common/tooltip";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

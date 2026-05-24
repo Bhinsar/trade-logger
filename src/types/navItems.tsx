@@ -2,6 +2,8 @@ import {
   Calendar,
   LayoutDashboard,
   Lightbulb,
+  Monitor,
+  ShieldCheck,
   TrendingUp,
 } from "lucide-react";
 import { IoWarningOutline } from "react-icons/io5";
@@ -35,6 +37,12 @@ export const navSections: NavItem[] = [
     href: "/trades-checklist",
   },
   {
+    id: "rules",
+    label: "Rules",
+    icon: <ShieldCheck size={18} />,
+    href: "/rules",
+  },
+  {
     id: "trades",
     label: "Trades",
     icon: <TrendingUp size={18} />,
@@ -51,6 +59,12 @@ export const navSections: NavItem[] = [
     label: "Mistakes",
     icon: <IoWarningOutline size={18} />,
     href: "/mistakes",
+  },
+  {
+    id: "aiSummary",
+    label: "AI Summary",
+    icon: <Monitor  size={18} />,
+    href: "/ai-summary",
   },
   {
     id: "calendar",
