@@ -205,7 +205,7 @@ export default function TradeChecklistHistoryView() {
                 <span className="text-xs text-[#6b7094]">
                   Showing{" "}
                   <span className="font-semibold text-white">
-                    {(currentPage - 1) * PAGE_SIZE + 1}–
+                    {(currentPage - 1) * PAGE_SIZE + 1}
                     {Math.min(currentPage * PAGE_SIZE, filteredHistory.length)}
                   </span>{" "}
                   of <span className="font-semibold text-white">{filteredHistory.length}</span> logs

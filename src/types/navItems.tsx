@@ -54,12 +54,12 @@ export const navSections: NavItem[] = [
     icon: <Lightbulb size={18} />,
     href: "/strategy",
   },
-  {
-    id: "mistakes",
-    label: "Mistakes",
-    icon: <IoWarningOutline size={18} />,
-    href: "/mistakes",
-  },
+  // {
+  //   id: "mistakes",
+  //   label: "Mistakes",
+  //   icon: <IoWarningOutline size={18} />,
+  //   href: "/mistakes",
+  // },
   {
     id: "aiSummary",
     label: "AI Summary",
